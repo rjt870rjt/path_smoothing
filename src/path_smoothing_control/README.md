@@ -105,6 +105,16 @@ ros2 launch path_smoothing_control turtlebot_path_tracking.launch.py
 ## Live Visualization
 
 You can explore the interactive 2D path smoothing demo here:  
-[🔗 View HTML Simulation](https://)
+[🔗 View HTML Simulation](https://rjt870rjt.github.io/web_interface/)
 
-## A video demonstration of the path smoothing and trajectory control in action:
+## A video demonstration of the path smoothing and trajectory control in action using all three methods:
+
+## Without obstacle
+- ### Using Bézier curves
+![Simulation video](/videos/no_obstacle/Bezeir%20curves.mp4)
+
+- ### Using linear interpolation
+![Simulation video](/videos/no_obstacle/Linear%20interpolation.mp4)
+
+- ### Using a Cubic spline
+![Simulation video](/videos/no_obstacle/cubic%20spline.mp4)
