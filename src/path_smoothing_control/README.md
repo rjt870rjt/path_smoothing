@@ -111,10 +111,18 @@ You can explore the interactive 2D path smoothing demo here:
 
 ## Without obstacle
 - ### Using Bézier curves
-![Simulation video](/videos/no_obstacle/Bezeir%20curves.mp4)
+
 
 - ### Using linear interpolation
-![Simulation video](/videos/no_obstacle/Linear%20interpolation.mp4)
+
 
 - ### Using a Cubic spline
-![Simulation video](/videos/no_obstacle/cubic%20spline.mp4)
+
+## With obstacle
+- ### Using Bézier curves
+
+
+- ### Using linear interpolation
+
+
+- ### Using a Cubic spline
