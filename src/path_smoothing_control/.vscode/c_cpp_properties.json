@@ -1,0 +1,57 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/edge/ros2_ws/install/rviz_plugin_tutorial_msgs/include/**",
+        "/home/edge/ros2_ws/install/polygon_base/include/**",
+        "/home/edge/ros2_ws/install/apriltag_msgs/include/**",
+        "/home/edge/ros2_ws/install/action_tutorials_interfaces/include/**",
+        "/home/edge/ros2_ws/ros2_git_folder/path_smoothing/install/path_smoothing_control/include/**",
+        "/opt/ros/humble/include/**",
+        "/home/edge/ros2_ws/ros2_git_folder/path_smoothing/path_smoothing_control/include/**",
+        "/home/edge/ros2_ws/src/action_tutorials_cpp/include/**",
+        "/home/edge/ros2_ws/src/action_tutorials_interfaces/include/**",
+        "/home/edge/ros2_ws/src/camera_sensor/include/**",
+        "/home/edge/ros2_ws/src/cpp_parameter_event_handler/include/**",
+        "/home/edge/ros2_ws/src/cpp_parameters/include/**",
+        "/home/edge/ros2_ws/src/cpp_pubsub/include/**",
+        "/home/edge/ros2_ws/src/cpp_srvcli/include/**",
+        "/home/edge/ros2_ws/src/dist_measure/include/**",
+        "/home/edge/ros2_ws/src/file_handling_demo/include/**",
+        "/home/edge/ros2_ws/src/gps_sensor/include/**",
+        "/home/edge/ros2_ws/src/imu_sensor/include/**",
+        "/home/edge/ros2_ws/src/joystick_controller/include/**",
+        "/home/edge/ros2_ws/src/kuka_urdf/include/**",
+        "/home/edge/ros2_ws/src/launch_files/include/**",
+        "/home/edge/ros2_ws/src/minimal_publisher/include/**",
+        "/home/edge/ros2_ws/src/more_interfaces/include/**",
+        "/home/edge/ros2_ws/src/my_plugin_pkg/include/**",
+        "/home/edge/ros2_ws/src/my_robot_description/include/**",
+        "/home/edge/ros2_ws/src/my_ros2_package/include/**",
+        "/home/edge/ros2_ws/src/my_ros2_pkg/include/**",
+        "/home/edge/ros2_ws/src/object_detection/include/**",
+        "/home/edge/ros2_ws/src/overloaded_publisher/include/**",
+        "/home/edge/ros2_ws/src/polygon_base/include/**",
+        "/home/edge/ros2_ws/src/polygon_plugins/include/**",
+        "/home/edge/ros2_ws/src/ros2_msg_publisher/include/**",
+        "/home/edge/ros2_ws/src/rviz_panel_tutorial/include/**",
+        "/home/edge/ros2_ws/src/rviz_plugin_tutorial/rviz_plugin_tutorial/include/**",
+        "/home/edge/ros2_ws/src/serial/include/**",
+        "/home/edge/ros2_ws/src/test/include/**",
+        "/home/edge/ros2_ws/src/topic_statics/include/**",
+        "/home/edge/ros2_ws/src/wifi_joystick/src/wifi_joystick/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

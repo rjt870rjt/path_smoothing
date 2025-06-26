@@ -1,0 +1,22 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/edge/ros2_ws/install/rviz_plugin_tutorial_msgs/local/lib/python3.10/dist-packages",
+        "/home/edge/ros2_ws/install/my_camera_driver/lib/python3.10/site-packages",
+        "/home/edge/ros2_ws/build/joint_state_publisher",
+        "/home/edge/ros2_ws/install/joint_state_publisher/lib/python3.10/site-packages",
+        "/home/edge/ros2_ws/install/apriltag_msgs/local/lib/python3.10/dist-packages",
+        "/home/edge/ros2_ws/install/action_tutorials_interfaces/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/edge/ros2_ws/install/rviz_plugin_tutorial_msgs/local/lib/python3.10/dist-packages",
+        "/home/edge/ros2_ws/install/my_camera_driver/lib/python3.10/site-packages",
+        "/home/edge/ros2_ws/build/joint_state_publisher",
+        "/home/edge/ros2_ws/install/joint_state_publisher/lib/python3.10/site-packages",
+        "/home/edge/ros2_ws/install/apriltag_msgs/local/lib/python3.10/dist-packages",
+        "/home/edge/ros2_ws/install/action_tutorials_interfaces/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}
