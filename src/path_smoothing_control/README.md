@@ -105,4 +105,6 @@ ros2 launch path_smoothing_control turtlebot_path_tracking.launch.py
 ## Live Visualization
 
 You can explore the interactive 2D path smoothing demo here:  
-[🔗 View HTML Simulation](https://your-username.github.io/path_smoothing/index.html)
+[🔗 View HTML Simulation](https://)
+
+## A video demonstration of the path smoothing and trajectory control in action:
