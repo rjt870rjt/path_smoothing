@@ -92,15 +92,16 @@ The trajectory generator supports three types of velocity profiles, allowing the
 - Velocity changes with smooth acceleration (jerk-limited)
 - Ideal for physical robots to reduce wear and ensure safety
 
-### Trajectory Control
-- A simple proportional controller was used for both distance and heading.
-- It is effective, easy to tune, and adequate for a 2D path tracking scenario.
-
 These can be selected dynamically using launch parameters or configuration settings:
 ```bash 
 -- smoothing_algorithm bezier
 -- velocity_profile trapezoidal
 ```
+### Trajectory Control
+- A simple proportional controller was used for both distance and heading.
+- It is effective, easy to tune, and adequate for a 2D path tracking scenario.
+
+
 ## Obstacle Avoidance
 ### In Simulation
     - Static obstacles are modeled in Gazebo.
