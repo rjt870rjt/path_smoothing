@@ -1,0 +1,66 @@
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Name: Grid
+      Class: rviz/Grid
+      Enabled: true
+
+    - Name: TF
+      Class: rviz/TF
+      Enabled: true
+
+    - Name: RobotModel
+      Class: rviz/RobotModel
+      Enabled: true
+      Robot Description: robot_description
+      TF Prefix: ""
+
+    - Name: Waypoints
+      Class: rviz/Path
+      Enabled: true
+      Topic: /waypoints
+      Color: 1; 0; 0; 1
+      Alpha: 1.0
+      Line Style: Lines
+      Line Width: 0.05
+
+    - Name: SmoothedPath
+      Class: rviz/Path
+      Enabled: true
+      Topic: /smoothed_path
+      Color: 0; 0; 1; 1
+      Alpha: 1.0
+      Line Style: Lines
+      Line Width: 0.05
+
+    - Name: Trajectory
+      Class: rviz/Path
+      Enabled: true
+      Topic: /adjusted_trajectory
+      Color: 1; 0.6; 0; 1
+      Alpha: 1.0
+      Line Style: Lines
+      Line Width: 0.05
+
+    - Name: Odom
+      Class: rviz/Odometry
+      Enabled: true
+      Topic: /odom
+      Color: 0; 1; 0; 1
+      Shaft Length: 0.1
+      Shaft Radius: 0.01
+      Head Length: 0.03
+      Head Radius: 0.02
+
+  Enabled: true
+  Global Options:
+    Fixed Frame: map
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+    - Class: rviz/MoveCamera
+    - Class: rviz/Select
+    - Class: rviz/Measure
+    - Class: rviz/FocusCamera
+  Value: true

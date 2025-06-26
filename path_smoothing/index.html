@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Path Smoothing and Trajectory Control</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #3498db, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 15px;
+            border: 2px solid rgba(52, 152, 219, 0.2);
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9em;
+        }
+        
+        input, select, button {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .simulation-area {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        #canvas {
+            border: 3px solid #34495e;
+            border-radius: 15px;
+            background: #f8f9fa;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .info-panel {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .info-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .info-section h3 {
+            margin: 0 0 10px 0;
+            color: #3498db;
+            font-size: 1.1em;
+        }
+        
+        .status {
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .metric {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .metric-label {
+            font-size: 0.8em;
+            color: #bdc3c7;
+            margin-top: 5px;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .robot-active {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Robot Path Smoothing & Trajectory Control</h1>
+        <p class="subtitle">Advanced 2D Navigation System with Obstacle Avoidance</p>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>Smoothing Algorithm:</label>
+                <select id="smoothingType">
+                    <option value="bezier">Bézier Curves</option>
+                    <option value="spline">Cubic Splines</option>
+                    <option value="linear">Linear Interpolation</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label>Velocity Profile:</label>
+                <select id="velocityProfile">
+                    <option value="trapezoidal">Trapezoidal</option>
+                    <option value="constant">Constant</option>
+                    <option value="smooth">S-Curve</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label>Max Velocity (m/s):</label>
+                <input type="number" id="maxVelocity" value="2.0" step="0.1" min="0.1" max="5.0">
+            </div>
+            
+            <div class="control-group">
+                <label>Controller Gain:</label>
+                <input type="number" id="controllerGain" value="0.8" step="0.1" min="0.1" max="5.0">
+            </div>
+            
+            <div class="control-group">
+                <label>Smoothing Factor:</label>
+                <input type="number" id="smoothingFactor" value="0.3" step="0.05" min="0.1" max="1.0">
+            </div>
+            
+            <div class="control-group">
+                <button onclick="generateRandomWaypoints()">🎯 Random Waypoints</button>
+            </div>
+            
+            <div class="control-group">
+                <button onclick="startSimulation()">▶️ Start Simulation</button>
+            </div>
+            
+            <div class="control-group">
+                <button onclick="resetSimulation()">🔄 Reset</button>
+            </div>
+        </div>
+        
+        <div class="simulation-area">
+            <canvas id="canvas" width="800" height="600"></canvas>
+            
+            <div class="info-panel">
+                <div class="info-section">
+                    <h3>📊 System Status</h3>
+                    <div class="status" id="systemStatus">
+                        Ready to start simulation
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <h3>🎯 Current Waypoint</h3>
+                    <div class="status" id="currentWaypoint">
+                        None
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <h3>🚀 Robot State</h3>
+                    <div class="status" id="robotState">
+                        Position: (0, 0)<br>
+                        Velocity: 0.0 m/s<br>
+                        Heading: 0.0°
+                    </div>
+                </div>
+                
+                <div class="metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="pathError">0.0</div>
+                        <div class="metric-label">Path Error (m)</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="completionPercent">0%</div>
+                        <div class="metric-label">Completion</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e74c3c;"></div>
+                <span>Waypoints</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #3498db;"></div>
+                <span>Smoothed Path</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2ecc71;"></div>
+                <span>Robot</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #95a5a6;"></div>
+                <span>Obstacles</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #f39c12;"></div>
+                <span>Trajectory</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let canvas, ctx;
+        let waypoints = [];
+        let smoothedPath = [];
+        let trajectory = [];
+        let obstacles = [];
+        let robot = { x: 0, y: 0, angle: 0, targetIndex: 0 };
+        let animationId;
+        let simulationTime = 0;
+        let isSimulationRunning = false;
+
+        // Initialize canvas
+        function initCanvas() {
+            canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+            
+            // Add click event for manual waypoint placement
+            canvas.addEventListener('click', addWaypoint);
+            
+            // Generate initial waypoints
+            generateRandomWaypoints();
+        }
+
+        // Add waypoint on canvas click
+        function addWaypoint(event) {
+            if (isSimulationRunning) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            waypoints.push({x, y});
+            updateVisualization();
+        }
+
+//------------------------------Main Logic Code starts here-------------------------------------
+
+
+
+        // Generate random waypoints (0,0), (1,1), (2,2)........ (n,n)
+        function generateRandomWaypoints() {
+            if (isSimulationRunning) return;
+            
+            waypoints = [];
+            obstacles = [];
+            
+            // Generate waypoints
+            const numWaypoints = 5 + Math.floor(Math.random() * 5);
+            for (let i = 0; i < numWaypoints; i++) {
+                waypoints.push({
+                    x: 50 + Math.random() * (canvas.width - 100),
+                    y: 50 + Math.random() * (canvas.height - 100)
+                });
+            }
+            
+            // Generate obstacles, if it works then will get extra credits 
+            const numObstacles = 3 + Math.floor(Math.random() * 4);
+            for (let i = 0; i < numObstacles; i++) {
+                obstacles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: 20 + Math.random() * 30
+                });
+            }
+            
+            updateVisualization();
+        }
+
+        // Task 1: Path Smoothing Algorithm
+        // Using different algorithms by making functions and calling them here
+        // The user can select the algorithm from the dropdown menu, you can switch between any of them and restart the simulation of path 
+
+        function smoothPath(waypoints, algorithm) {
+            if (waypoints.length < 2) return waypoints;
+            
+            switch (algorithm) {
+                case 'bezier':
+                    return smoothWithBezier(waypoints);
+                case 'spline':
+                    return smoothWithSpline(waypoints);
+                case 'linear':
+                default:
+                    return smoothWithLinear(waypoints);
+            }
+        }
+
+        // Bézier curve smoothing: Best for smooth curves
+        function smoothWithBezier(waypoints) {
+            const smoothed = [];
+            const resolution = 50;
+            
+            for (let i = 0; i < waypoints.length - 1; i++) {
+                const p0 = waypoints[Math.max(0, i - 1)];
+                const p1 = waypoints[i];
+                const p2 = waypoints[i + 1];
+                const p3 = waypoints[Math.min(waypoints.length - 1, i + 2)];
+                
+                for (let t = 0; t <= 1; t += 1 / resolution) {
+                    const point = catmullRomSpline(p0, p1, p2, p3, t);
+                    smoothed.push(point);
+                }
+            }
+            
+            return smoothed;
+        }
+
+        // Catmull-Rom spline interpolation: Best for smooth paths through points
+        function catmullRomSpline(p0, p1, p2, p3, t) {
+            const t2 = t * t;
+            const t3 = t2 * t;
+            
+            return {
+                x: 0.5 * ((2 * p1.x) + (-p0.x + p2.x) * t + 
+                    (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + 
+                    (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
+                y: 0.5 * ((2 * p1.y) + (-p0.y + p2.y) * t + 
+                    (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + 
+                    (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3)
+            };
+        }
+
+        // Cubic spline smoothing: Best for smooth curves with controlled tension
+        function smoothWithSpline(waypoints) {
+            const smoothed = [];
+            const resolution = 30;
+            
+            for (let i = 0; i < waypoints.length - 1; i++) {
+                const p1 = waypoints[i];
+                const p2 = waypoints[i + 1];
+                
+                for (let t = 0; t <= 1; t += 1 / resolution) {
+                    smoothed.push({
+                        x: p1.x + (p2.x - p1.x) * easeInOutCubic(t),
+                        y: p1.y + (p2.y - p1.y) * easeInOutCubic(t)
+                    });
+                }
+            }
+            
+            return smoothed;
+        }
+
+        // Linear interpolation: Best for straight paths
+        function smoothWithLinear(waypoints) {
+            const smoothed = [];
+            const resolution = 20;
+            
+            for (let i = 0; i < waypoints.length - 1; i++) {
+                const p1 = waypoints[i];
+                const p2 = waypoints[i + 1];
+                
+                for (let t = 0; t <= 1; t += 1 / resolution) {
+                    smoothed.push({
+                        x: p1.x + (p2.x - p1.x) * t,
+                        y: p1.y + (p2.y - p1.y) * t
+                    });
+                }
+            }
+            
+            return smoothed;
+        }
+
+        // Easing function for smooth interpolation
+        function easeInOutCubic(t) {
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        // Task 2: Trajectory Generation: Generate a smooth trajectory for a robot to follow to reach the goal via waypoints.
+
+        function generateTrajectory(smoothedPath, velocityProfile, maxVelocity) {
+            if (smoothedPath.length === 0) return [];
+            
+            const trajectory = [];
+            let currentTime = 0;
+            
+            for (let i = 0; i < smoothedPath.length; i++) {
+                const point = smoothedPath[i];
+                let velocity = maxVelocity;
+                
+                // Apply velocity profile, this is done because the robot should not move at constant speed, it should accelerate and decelerate smoothly.
+
+                switch (velocityProfile) {
+                    case 'trapezoidal':
+                        velocity = getTrapezoidalVelocity(i, smoothedPath.length, maxVelocity);
+                        break;
+                    case 'smooth':
+                        velocity = getSmoothVelocity(i, smoothedPath.length, maxVelocity);
+                        break;
+                    case 'constant':
+                    default:
+                        velocity = maxVelocity;
+                        break;
+                }
+                
+                trajectory.push({
+                    x: point.x,
+                    y: point.y,
+                    t: currentTime,
+                    v: velocity
+                });
+                
+                if (i > 0) {
+                    const dist = Math.sqrt(
+                        Math.pow(point.x - smoothedPath[i-1].x, 2) + 
+                        Math.pow(point.y - smoothedPath[i-1].y, 2)
+                    );
+                    currentTime += dist / (velocity * 60); // Convert to simulation time
+                }
+            }
+            
+            return trajectory;
+        }
+
+        // Trapezoidal velocity profile: Used for smooth acceleration and deceleration
+        function getTrapezoidalVelocity(index, totalPoints, maxVel) {
+            const progress = index / totalPoints;
+            const accelPhase = 0.3;
+            const decelPhase = 0.7;
+            
+            if (progress < accelPhase) {
+                return maxVel * (progress / accelPhase);
+            } else if (progress > decelPhase) {
+                return maxVel * ((1 - progress) / (1 - decelPhase));
+            }
+            return maxVel;
+        }
+
+        // S-curve velocity profile: Used for smooth acceleration and deceleration with more gradual changes
+
+        function getSmoothVelocity(index, totalPoints, maxVel) {
+            const progress = index / totalPoints;
+            return maxVel * (1 - Math.cos(progress * Math.PI)) / 2;
+        }
+
+        // Task 3: Trajectory Tracking Controller: Implemented a controller that makes a simulated robot follow the trajectory
+
+        function updateRobotController() {
+            if (trajectory.length === 0 || robot.targetIndex >= trajectory.length) {
+                return { vx: 0, vy: 0, completed: true };
+            }
+            
+            // Find the closest point on trajectory ahead of robot
+            let bestIndex = robot.targetIndex;
+            let minDistance = Infinity;
+            
+            // Look ahead multiple points to avoid getting stuck, i.e., if the robot is stuck at a point, it will look ahead to find the next best point to move towards. Initially it will look at the next 20 points, but if it doesn't find a good point, it will just move to the next available point.
+
+            for (let i = robot.targetIndex; i < Math.min(robot.targetIndex + 20, trajectory.length); i++) {
+                const point = trajectory[i];
+                const dist = Math.sqrt(
+                    Math.pow(point.x - robot.x, 2) + 
+                    Math.pow(point.y - robot.y, 2)
+                );
+                
+                if (dist < minDistance && dist > 5) { // Minimum distance to avoid oscillation
+                    minDistance = dist;
+                    bestIndex = i;
+                }
+            }
+            
+            // If no good point found ahead, just move to next available point
+            if (bestIndex === robot.targetIndex) {
+                bestIndex = Math.min(robot.targetIndex + 5, trajectory.length - 1);
+            }
+            
+            const target = trajectory[bestIndex];
+            const dx = target.x - robot.x;
+            const dy = target.y - robot.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Normalize direction
+            let dirX = 0, dirY = 0;
+            if (distance > 0.1) {
+                dirX = dx / distance;
+                dirY = dy / distance;
+            }
+            
+            // Apply speed
+            const controllerGain = parseFloat(document.getElementById('controllerGain').value);
+            let desiredVx = dirX * controllerGain;
+            let desiredVy = dirY * controllerGain;
+            
+            // Reduced obstacle avoidance
+            const avoidanceForce = getObstacleAvoidanceForce(robot.x, robot.y);
+            desiredVx += avoidanceForce.x * 0.3; // Reduced influence
+            desiredVy += avoidanceForce.y * 0.3;
+            
+            // Update target index more aggressively
+            if (distance < 20) {
+                robot.targetIndex = Math.min(robot.targetIndex + 2, trajectory.length - 1);
+            }
+            
+            // Check completion
+            const finalDistance = Math.sqrt(
+                Math.pow(robot.x - trajectory[trajectory.length - 1].x, 2) + 
+                Math.pow(robot.y - trajectory[trajectory.length - 1].y, 2)
+            );
+            
+            return {
+                vx: desiredVx,
+                vy: desiredVy,
+                completed: finalDistance < 15
+            };
+        }
+
+        // Extra credit task:  Obstacle avoidance force calculation 
+        function getObstacleAvoidanceForce(x, y) {
+            let forceX = 0;
+            let forceY = 0;
+            const avoidanceRadius = 100; // Adjust the avoidance radius for more or less avoidance
+            const avoidanceStrength = 2.0; // Weaker force tends the robot to move without avoiding obstacle and stronger will lead to path distortion, so it's a trade-off. Make the values smaller for more aggressive avoidance.
+            
+            obstacles.forEach(obstacle => {
+                const dx = x - obstacle.x;
+                const dy = y - obstacle.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < avoidanceRadius + obstacle.radius && distance > 0) {
+                    const force = avoidanceStrength / Math.max(distance - obstacle.radius, 1);
+                    forceX += (dx / distance) * force;
+                    forceY += (dy / distance) * force;
+                }
+            });
+            
+            return { x: forceX, y: forceY };
+        }
+
+        // Start simulation
+        function startSimulation() {
+            if (waypoints.length < 2) {
+                alert('Please add at least 2 waypoints (click on canvas or use Random Waypoints)');
+                return;
+            }
+            
+            isSimulationRunning = true;
+            simulationTime = 0;
+            
+            // Generate smooth path and trajectory
+            const algorithm = document.getElementById('smoothingType').value;
+            const velocityProfile = document.getElementById('velocityProfile').value;
+            const maxVelocity = parseFloat(document.getElementById('maxVelocity').value);
+            
+            smoothedPath = smoothPath(waypoints, algorithm);
+            trajectory = generateTrajectory(smoothedPath, velocityProfile, maxVelocity);
+            
+            // Initialize robot at first waypoint
+            robot = {
+                x: waypoints[0].x,
+                y: waypoints[0].y,
+                angle: 0,
+                targetIndex: 0
+            };
+            
+            // Start animation loop
+            animate();
+        }
+
+        // Reset simulation
+        function resetSimulation() {
+            isSimulationRunning = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            
+            simulationTime = 0;
+            robot = { x: 0, y: 0, angle: 0, targetIndex: 0 };
+            
+            updateVisualization();
+            updateInfoPanel();
+        }
+
+        // Animation loop: This loop updates the robot's position and angle based on the trajectory and controller, and redraws the canvas. Runs at 60 FPS.
+        function animate() {
+            if (!isSimulationRunning) return;
+            
+            // Update robot with better movement
+            const control = updateRobotController();
+            
+            // Smoother movement with momentum
+            robot.x += control.vx * 0.8;
+            robot.y += control.vy * 0.8;
+            
+            // Smoother angle update
+            if (Math.abs(control.vx) > 0.1 || Math.abs(control.vy) > 0.1) {
+                const targetAngle = Math.atan2(control.vy, control.vx);
+                let angleDiff = targetAngle - robot.angle;
+                
+                // Handle angle wrapping
+                if (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+                if (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+                
+                robot.angle += angleDiff * 0.2; // Smooth rotation
+            }
+            
+            simulationTime += 1/60;
+            
+            // Update visualization
+            updateVisualization();
+            updateInfoPanel();
+            
+            // Check if completed
+            if (control.completed) {
+                isSimulationRunning = false;
+                document.getElementById('systemStatus').innerHTML = 
+                    'Trajectory completed successfully!';
+                return;
+            }
+            
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Update visualization
+        function updateVisualization() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw obstacles
+            obstacles.forEach(obstacle => {
+                ctx.fillStyle = 'rgba(149, 165, 166, 0.7)';
+                ctx.beginPath();
+                ctx.arc(obstacle.x, obstacle.y, obstacle.radius, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.strokeStyle = '#95a5a6';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+            
+            // Draw smoothed path
+            if (smoothedPath.length > 1) {
+                ctx.strokeStyle = '#3498db';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(smoothedPath[0].x, smoothedPath[0].y);
+                
+                for (let i = 1; i < smoothedPath.length; i++) {
+                    ctx.lineTo(smoothedPath[i].x, smoothedPath[i].y);
+                }
+                ctx.stroke();
+            }
+            
+            // Draw trajectory points
+            trajectory.forEach((point, index) => {
+                const alpha = Math.max(0.1, 1 - index / trajectory.length);
+                ctx.fillStyle = `rgba(243, 156, 18, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 2, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+            
+            // Draw waypoints
+            waypoints.forEach((wp, index) => {
+                ctx.fillStyle = '#e74c3c';
+                ctx.beginPath();
+                ctx.arc(wp.x, wp.y, 8, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(index.toString(), wp.x, wp.y + 4);
+            });
+            
+            // Draw robot
+            ctx.save();
+            ctx.translate(robot.x, robot.y);
+            ctx.rotate(robot.angle);
+            
+            // Robot body
+            ctx.fillStyle = isSimulationRunning ? '#2ecc71' : '#27ae60';
+            ctx.fillRect(-15, -10, 30, 20);
+            
+            // Robot direction indicator
+            ctx.fillStyle = '#1e8449';
+            ctx.beginPath();
+            ctx.moveTo(15, 0);
+            ctx.lineTo(25, -5);
+            ctx.lineTo(25, 5);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+            
+            // Draw robot trail
+            if (isSimulationRunning && trajectory.length > 0) {
+                const completedPoints = robot.targetIndex;
+                if (completedPoints > 1) {
+                    ctx.strokeStyle = 'rgba(46, 204, 113, 0.5)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(trajectory[0].x, trajectory[0].y);
+                    
+                    for (let i = 1; i < Math.min(completedPoints, trajectory.length); i++) {
+                        ctx.lineTo(trajectory[i].x, trajectory[i].y);
+                    }
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Update information panel
+        function updateInfoPanel() {
+            // System status
+            if (isSimulationRunning) {
+                document.getElementById('systemStatus').innerHTML = 
+                    ' Simulation running...<br>Algorithm: ' + 
+                    document.getElementById('smoothingType').value.toUpperCase();
+            } else if (waypoints.length === 0) {
+                document.getElementById('systemStatus').innerHTML = 
+                    ' No waypoints defined<br>Click canvas or generate random';
+            } else {
+                document.getElementById('systemStatus').innerHTML = 
+                    ' Simulation paused<br>Ready to start';
+            }
+            
+            // Current waypoint
+            if (robot.targetIndex < trajectory.length) {
+                const target = trajectory[robot.targetIndex];
+                document.getElementById('currentWaypoint').innerHTML = 
+                    `Target: (${target.x.toFixed(1)}, ${target.y.toFixed(1)})<br>` +
+                    `Index: ${robot.targetIndex}/${trajectory.length}`;
+            }
+            
+            // Robot state
+            document.getElementById('robotState').innerHTML = 
+                `Position: (${robot.x.toFixed(1)}, ${robot.y.toFixed(1)})<br>` +
+                `Heading: ${(robot.angle * 180 / Math.PI).toFixed(1)}°<br>` +
+                `Time: ${simulationTime.toFixed(1)}s`;
+            
+            // Path error
+            if (trajectory.length > 0 && robot.targetIndex < trajectory.length) {
+                const target = trajectory[robot.targetIndex];
+                const error = Math.sqrt(
+                    Math.pow(robot.x - target.x, 2) + 
+                    Math.pow(robot.y - target.y, 2)
+                );
+                document.getElementById('pathError').textContent = error.toFixed(2);
+            } else {
+                document.getElementById('pathError').textContent = '0.0';
+            }
+            
+            // Completion percentage
+            const completion = trajectory.length > 0 ? 
+                Math.min(100, (robot.targetIndex / trajectory.length) * 100) : 0;
+            document.getElementById('completionPercent').textContent = 
+                completion.toFixed(0) + '%';
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', function() {
+            initCanvas();
+            updateVisualization();
+            updateInfoPanel();
+        });
+
+        // Utility functions for mathematical calculations: These functions are used for mathematical calculations like distance, angle, etc. for the robot's movement.
+
+        class PathSmoother {
+            static bezierCurve(p0, p1, p2, p3, t) {
+                const u = 1 - t;
+                const tt = t * t;
+                const uu = u * u;
+                const uuu = uu * u;
+                const ttt = tt * t;
+                
+                return {
+                    x: uuu * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + ttt * p3.x,
+                    y: uuu * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + ttt * p3.y
+                };
+            }
+            
+            static calculateControlPoints(waypoints) {
+                const controlPoints = [];
+                for (let i = 0; i < waypoints.length; i++) {
+                    const prev = waypoints[Math.max(0, i - 1)];
+                    const curr = waypoints[i];
+                    const next = waypoints[Math.min(waypoints.length - 1, i + 1)];
+                    
+                    const cp1 = {
+                        x: curr.x - (next.x - prev.x) * 0.15,
+                        y: curr.y - (next.y - prev.y) * 0.15
+                    };
+                    
+                    const cp2 = {
+                        x: curr.x + (next.x - prev.x) * 0.15,
+                        y: curr.y + (next.y - prev.y) * 0.15
+                    };
+                    
+                    controlPoints.push({ cp1, cp2 });
+                }
+                return controlPoints;
+            }
+        }
+
+        class TrajectoryController {
+            constructor(kp = 1.0, ki = 0.1, kd = 0.05) {
+                this.kp = kp;
+                this.ki = ki;
+                this.kd = kd;
+                this.prevError = { x: 0, y: 0 };
+                this.integral = { x: 0, y: 0 };
+            }
+            
+            pidControl(error, dt) {
+                // Proportional term
+                const p = { x: error.x * this.kp, y: error.y * this.kp };
+                
+                // Integral term
+                this.integral.x += error.x * dt;
+                this.integral.y += error.y * dt;
+                const i = { x: this.integral.x * this.ki, y: this.integral.y * this.ki };
+                
+                // Derivative term
+                const derivative = {
+                    x: (error.x - this.prevError.x) / dt,
+                    y: (error.y - this.prevError.y) / dt
+                };
+                const d = { x: derivative.x * this.kd, y: derivative.y * this.kd };
+                
+                this.prevError = error;
+                
+                return {
+                    x: p.x + i.x + d.x,
+                    y: p.y + i.y + d.y
+                };
+            }
+        }
+
+        // Advanced path planning algorithms
+        class PathPlanner {
+            static aStarPathfinding(start, goal, obstacles, gridSize = 20) {
+                // A* pathfinding algorithm for obstacle avoidance
+                const grid = this.createGrid(canvas.width, canvas.height, gridSize, obstacles);
+                const openSet = [this.createNode(start.x, start.y, gridSize)];
+                const closedSet = [];
+                const cameFrom = new Map();
+                
+                while (openSet.length > 0) {
+                    // Find node with lowest f score
+                    let current = openSet[0];
+                    let currentIndex = 0;
+                    
+                    for (let i = 1; i < openSet.length; i++) {
+                        if (openSet[i].f < current.f) {
+                            current = openSet[i];
+                            currentIndex = i;
+                        }
+                    }
+                    
+                    openSet.splice(currentIndex, 1);
+                    closedSet.push(current);
+                    
+                    // Check if goal reached
+                    if (this.distance(current, goal) < gridSize) {
+                        return this.reconstructPath(cameFrom, current, gridSize);
+                    }
+                    
+                    // Check neighbors
+                    const neighbors = this.getNeighbors(current, grid, gridSize);
+                    for (const neighbor of neighbors) {
+                        if (closedSet.some(node => node.x === neighbor.x && node.y === neighbor.y)) {
+                            continue;
+                        }
+                        
+                        const tentativeG = current.g + this.distance(current, neighbor);
+                        
+                        const existingNode = openSet.find(node => 
+                            node.x === neighbor.x && node.y === neighbor.y);
+                        
+                        if (!existingNode) {
+                            neighbor.g = tentativeG;
+                            neighbor.h = this.distance(neighbor, goal);
+                            neighbor.f = neighbor.g + neighbor.h;
+                            openSet.push(neighbor);
+                            cameFrom.set(`${neighbor.x},${neighbor.y}`, current);
+                        } else if (tentativeG < existingNode.g) {
+                            existingNode.g = tentativeG;
+                            existingNode.f = existingNode.g + existingNode.h;
+                            cameFrom.set(`${existingNode.x},${existingNode.y}`, current);
+                        }
+                    }
+                }
+                
+                return []; // If No path found
+            }
+            
+            static createGrid(width, height, gridSize, obstacles) {
+                const grid = [];
+                for (let x = 0; x < width; x += gridSize) {
+                    for (let y = 0; y < height; y += gridSize) {
+                        const isObstacle = obstacles.some(obs => 
+                            this.distance({x, y}, obs) < obs.radius + gridSize/2);
+                        grid.push({ x, y, obstacle: isObstacle });
+                    }
+                }
+                return grid;
+            }
+            
+            static createNode(x, y, gridSize) {
+                return {
+                    x: Math.floor(x / gridSize) * gridSize,
+                    y: Math.floor(y / gridSize) * gridSize,
+                    g: 0, h: 0, f: 0
+                };
+            }
+            
+            static getNeighbors(node, grid, gridSize) {
+                const neighbors = [];
+                const directions = [
+                    {x: -gridSize, y: 0}, {x: gridSize, y: 0},
+                    {x: 0, y: -gridSize}, {x: 0, y: gridSize},
+                    {x: -gridSize, y: -gridSize}, {x: gridSize, y: -gridSize},
+                    {x: -gridSize, y: gridSize}, {x: gridSize, y: gridSize}
+                ];
+                
+                for (const dir of directions) {
+                    const newX = node.x + dir.x;
+                    const newY = node.y + dir.y;
+                    
+                    const gridNode = grid.find(g => g.x === newX && g.y === newY);
+                    if (gridNode && !gridNode.obstacle) {
+                        neighbors.push({ x: newX, y: newY, g: 0, h: 0, f: 0 });
+                    }
+                }
+                
+                return neighbors;
+            }
+            
+            static distance(a, b) {
+                return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+            }
+            
+            static reconstructPath(cameFrom, current, gridSize) {
+                const path = [current];
+                let key = `${current.x},${current.y}`;
+                
+                while (cameFrom.has(key)) {
+                    current = cameFrom.get(key);
+                    path.unshift(current);
+                    key = `${current.x},${current.y}`;
+                }
+                
+                return path;
+            }
+        }
+
+        // Enhanced robot physics
+        class RobotPhysics {
+            constructor() {
+                this.mass = 10; // kg
+                this.maxForce = 50; // N
+                this.friction = 0.9;
+                this.velocity = { x: 0, y: 0 };
+                this.acceleration = { x: 0, y: 0 };
+            }
+            
+            applyForce(force) {
+                this.acceleration.x += force.x / this.mass;
+                this.acceleration.y += force.y / this.mass;
+            }
+            
+            update() {
+                // Update velocity
+                this.velocity.x += this.acceleration.x;
+                this.velocity.y += this.acceleration.y;
+                
+                // Apply friction
+                this.velocity.x *= this.friction;
+                this.velocity.y *= this.friction;
+                
+                // Reset acceleration
+                this.acceleration.x = 0;
+                this.acceleration.y = 0;
+                
+                return this.velocity;
+            }
+        }
+
+        // Performance metrics calculator
+        class PerformanceMetrics {
+            static calculatePathLength(path) {
+                let length = 0;
+                for (let i = 1; i < path.length; i++) {
+                    length += Math.sqrt(
+                        Math.pow(path[i].x - path[i-1].x, 2) + 
+                        Math.pow(path[i].y - path[i-1].y, 2)
+                    );
+                }
+                return length;
+            }
+            
+            static calculateSmoothness(path) {
+                if (path.length < 3) return 0;
+                
+                let totalCurvature = 0;
+                for (let i = 1; i < path.length - 1; i++) {
+                    const p1 = path[i-1];
+                    const p2 = path[i];
+                    const p3 = path[i+1];
+                    
+                    const angle1 = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                    const angle2 = Math.atan2(p3.y - p2.y, p3.x - p2.x);
+                    
+                    let angleDiff = Math.abs(angle2 - angle1);
+                    if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+                    
+                    totalCurvature += angleDiff;
+                }
+                
+                return totalCurvature / (path.length - 2);
+            }
+            
+            static calculateTrackingError(robotPath, referencePath) {
+                if (robotPath.length === 0 || referencePath.length === 0) return 0;
+                
+                let totalError = 0;
+                let count = 0;
+                
+                robotPath.forEach(robotPoint => {
+                    let minDistance = Infinity;
+                    referencePath.forEach(refPoint => {
+                        const distance = Math.sqrt(
+                            Math.pow(robotPoint.x - refPoint.x, 2) + 
+                            Math.pow(robotPoint.y - refPoint.y, 2)
+                        );
+                        minDistance = Math.min(minDistance, distance);
+                    });
+                    totalError += minDistance;
+                    count++;
+                });
+                
+                return count > 0 ? totalError / count : 0;
+            }
+        }
+    </script>
+</body>
+</html>

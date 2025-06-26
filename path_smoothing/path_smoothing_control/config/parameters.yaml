@@ -1,0 +1,34 @@
+waypoint_publisher:
+  ros__parameters:
+    num_waypoints: 8
+    publish_rate: 1.0
+    frame_id: "map"
+
+path_smoother:
+  ros__parameters:
+    smoothing_type: "bezier"  # or "linear"
+    resolution: 30
+    frame_id: "map"
+
+trajectory_generator:
+  ros__parameters:
+    velocity_profile: "trapezoidal"  # or "smooth" or "constant"
+    max_velocity: 0.4
+    frame_id: "map"
+
+obstacle_avoidance:
+  ros__parameters:
+    avoidance_radius: 1.0
+    avoidance_strength: 2.0
+    frame_id: "map"
+
+trajectory_follower:
+  ros__parameters:
+    controller_gain: 1.2
+    frame_id: "map"
+    robot_base_frame: "base_footprint"
+
+metrics_node:
+  ros__parameters:
+    odom_topic: "/odom"
+    trajectory_topic: "/adjusted_trajectory"
