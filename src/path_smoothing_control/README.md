@@ -1,4 +1,5 @@
 # Path Smoothing & Trajectory Control in 2D Space (ROS 2)
+[video: to be added ]
 
 This project implements a complete navigation pipeline in ROS 2 for a differential drive robot (TurtleBot3), with the following core features:
 
@@ -58,27 +59,53 @@ ros2 launch path_smoothing_control turtlebot_path_tracking.launch.py
 --
 
 ## Design Choices and Algorithmic Details
-#### Why ROS 2 and TurtleBot3?
+### Why ROS 2 and TurtleBot3?
 
 - ROS 2 provides real-time, modular communication and wide hardware support. TurtleBot3 offers easy integration with both simulation and real robots.
-#### Smoothing Algorithms
+### Smoothing Algorithms
+This project supports three different path smoothing techniques to convert discrete waypoints into a continuous path:
 
-- Linear interpolation creates direct connections but introduces sharp turns.
-- Bézier curves produce smoother paths more suitable for differential drive robots.
+#### 1. Linear Interpolation
+- Straight-line connections between waypoints
+- Fast but results in sharp corners
 
-#### Velocity Profiling
-- Trapezoidal profile was used to simulate realistic acceleration and deceleration.
-- This improves motion fluidity and reduces mechanical stress.
+#### 2. Bézier Curves
+- Smooth polynomial curves
+- Great for natural paths and smooth turning
 
-#### Trajectory Control
+#### 3. Cubic Splines
+- Smooth interpolation ensuring continuous curvature and derivative
+- Best suited for high-precision navigation tasks
+
+### Velocity Profiling
+The trajectory generator supports three types of velocity profiles, allowing the robot to move in a realistic and tunable manner:
+
+#### 1. Constant Velocity
+- Robot moves at a fixed speed
+- Simple and easy to implement, but abrupt at start/stop
+
+#### 2. Trapezoidal Velocity Profile
+- ***Accelerates*** and decelerates linearly
+- Smoothens start/stop without overshooting
+
+#### 3. S-Curve Velocity Profile
+- Velocity changes with smooth acceleration (jerk-limited)
+- Ideal for physical robots to reduce wear and ensure safety
+
+### Trajectory Control
 - A simple proportional controller was used for both distance and heading.
 - It is effective, easy to tune, and adequate for a 2D path tracking scenario.
 
+These can be selected dynamically using launch parameters or configuration settings:
+```bash 
+-- smoothing_algorithm bezier
+-- velocity_profile trapezoidal
+```
 ## Obstacle Avoidance
-#### In Simulation
+### In Simulation
     - Static obstacles are modeled in Gazebo.
     - Repulsive force fields are computed based on obstacle proximity and added to the trajectory.
-#### In Real-Robot Scenarios
+### In Real-Robot Scenarios
     - Use sensor_msgs/LaserScan from LiDAR to detect obstacles.
     - Convert laser scans into costmaps or dynamic points.
     - Implement avoidance using vector fields, dynamic window approach (DWA), or local planners.
@@ -126,3 +153,4 @@ You can explore the interactive 2D path smoothing demo here:
 
 
 - ### Using a Cubic spline
+
