@@ -1,5 +1,6 @@
 # Path Smoothing & Trajectory Control in 2D Space (ROS 2)
-[video: to be added ]
+![image](https://github.com/user-attachments/assets/a96ec264-9c6b-4ffe-850b-a31f13352c85)
+See the simulation of path smoothing here: https://rjt870rjt.github.io/web_interface/
 
 This project implements a complete navigation pipeline in ROS 2 for a differential drive robot (TurtleBot3), with the following core features:
 
@@ -135,23 +136,4 @@ These can be selected dynamically using launch parameters or configuration setti
 You can explore the interactive 2D path smoothing demo here:  
 [🔗 View HTML Simulation](https://rjt870rjt.github.io/web_interface/)
 
-## A video demonstration of the path smoothing and trajectory control in action using all three methods:
-
-## Without obstacle
-- ### Using Bézier curves
-
-
-- ### Using linear interpolation
-
-
-- ### Using a Cubic spline
-
-## With obstacle
-- ### Using Bézier curves
-
-
-- ### Using linear interpolation
-
-
-- ### Using a Cubic spline
 
