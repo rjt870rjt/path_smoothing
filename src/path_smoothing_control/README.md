@@ -136,4 +136,6 @@ These can be selected dynamically using launch parameters or configuration setti
 You can explore the interactive 2D path smoothing demo here:  
 [🔗 View HTML Simulation](https://rjt870rjt.github.io/web_interface/)
 
+## See the video demonstration here:
+https://youtu.be/JrZuzASVuL8 
 
